@@ -142,8 +142,17 @@ function App() {
     <div className='app-container'>
       <nav className='navbar'>
         <div className='nav-brand'>
-          <div className='logo-box'>P</div>
-          <span className='brand-text'>Project CSV</span>
+          <img
+            src='https://www.conectys.com/wp-content/uploads/2024/08/conectys-logo.svg'
+            alt='Conectys Logo'
+            className='logo-box'
+            style={{
+              width: "100px", // bigger
+              height: "auto", // preserve aspect ratio
+              display: "block", // remove background/inline weird spacing
+            }}
+          />
+          <span className='brand-text'>CVS Viewer</span>
         </div>
       </nav>
 
@@ -224,7 +233,7 @@ function App() {
       </main>
 
       <footer className='footer'>
-        <p>&copy; 2026 Project CSV Clone. Open Source.</p>
+        <p>&copy; 2026 CVS Viewer. Open Source.</p>
       </footer>
     </div>
   );

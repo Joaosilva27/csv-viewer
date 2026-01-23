@@ -53,10 +53,30 @@ const CopyInput = ({ label, value }) => {
       <label className='input-label'>{label}</label>
       <div className='input-wrapper'>
         <code className='code-display'>{value || "Waiting for file..."}</code>
-        <button onClick={handleCopy} disabled={!value} className='btn-icon' title='Copy to clipboard'>
+        <button onClick={handleCopy} disabled={!value} className='btn-icon'>
           {copied ? <IconCheck /> : <IconCopy />}
         </button>
       </div>
+    </div>
+  );
+};
+
+// --- Sub-Component: Copyable Table Cell ---
+const CopyCell = ({ value }) => {
+  const [copied, setCopied] = useState(false);
+
+  const copy = () => {
+    navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <div className='input-wrapper'>
+      <code className='code-display'>{value}</code>
+      <button className='btn-icon' onClick={copy}>
+        {copied ? <IconCheck /> : <IconCopy />}
+      </button>
     </div>
   );
 };
@@ -67,126 +87,93 @@ function App() {
   const [headers, setHeaders] = useState([]);
   const [fileName, setFileName] = useState("");
 
-  // Device Identity State
   const [deviceId, setDeviceId] = useState("");
   const [deviceHash, setDeviceHash] = useState("");
 
-  // Settings State
   const [separator, setSeparator] = useState(",");
   const [hasHeaders, setHasHeaders] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const fileInputRef = useRef(null);
 
-  // Logic: Calculate SHA-256
   const calculateHash = async text => {
     const encoder = new TextEncoder();
     const data = encoder.encode(text);
     const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+    return Array.from(new Uint8Array(hashBuffer))
+      .map(b => b.toString(16).padStart(2, "0"))
+      .join("");
   };
 
-  // Logic: Generate Mock Device UUID
-  const generateDeviceId = () => {
-    return "dev_" + crypto.randomUUID().split("-").join("").substring(0, 16);
-  };
+  const generateDeviceId = () => "dev_" + crypto.randomUUID().replace(/-/g, "").slice(0, 16);
 
-  // Logic: File Processing
   const processFile = async file => {
     if (!file) return;
 
     setFileName(file.name);
 
-    // 1. Identity Logic
     const text = await file.text();
-    const hash = await calculateHash(text);
-    const newId = generateDeviceId();
+    setDeviceHash(await calculateHash(text));
+    setDeviceId(generateDeviceId());
 
-    setDeviceHash(hash);
-    setDeviceId(newId);
-
-    // 2. CSV Parser Logic
-    const rows = text.split(/\r?\n/).filter(row => row.trim() !== "");
-    if (rows.length === 0) return;
-
-    let parsedData = rows.map(row => row.split(separator));
+    const rows = text
+      .split(/\r?\n/)
+      .filter(r => r.trim() !== "")
+      .map(r => r.split(separator));
 
     if (hasHeaders) {
-      setHeaders(parsedData[0]);
-      setFileData(parsedData.slice(1));
+      setHeaders(rows[0]);
+      setFileData(rows.slice(1));
     } else {
-      const maxCols = Math.max(...parsedData.map(row => row.length));
-      setHeaders(Array.from({ length: maxCols }, (_, i) => `Column ${i + 1}`));
-      setFileData(parsedData);
+      setHeaders(rows[0].map((_, i) => `Column ${i + 1}`));
+      setFileData(rows);
     }
   };
 
-  const handleFileChange = e => {
-    processFile(e.target.files[0]);
-  };
-
-  const triggerFileInput = () => fileInputRef.current.click();
-
   const resetAll = () => {
     setFileData([]);
+    setHeaders([]);
     setFileName("");
     setDeviceId("");
     setDeviceHash("");
-    setHeaders([]);
   };
 
   return (
     <div className='app-container'>
-      {/* Navigation */}
       <nav className='navbar'>
         <div className='nav-brand'>
           <div className='logo-box'>P</div>
           <span className='brand-text'>Project CSV</span>
         </div>
-        <div className='nav-links'>
-          <a href='#home'>Home</a>
-          <a href='#github'>GitHub</a>
-          <a href='#about'>About</a>
-        </div>
       </nav>
 
       <main className='main-content'>
-        {/* Settings Panel */}
         <section className='card settings-card'>
           <div className='card-header clickable' onClick={() => setShowAdvanced(!showAdvanced)}>
-            <div className='header-title'>
-              <IconSettings />
-              <h2>CSV Settings</h2>
-            </div>
-            <span className={`arrow ${showAdvanced ? "open" : ""}`}>▼</span>
+            <IconSettings />
+            <h2>CSV Settings</h2>
           </div>
 
-          <div className={`settings-body ${showAdvanced ? "show" : ""}`}>
-            <div className='control-group'>
-              <label>Column Separator</label>
+          {showAdvanced && (
+            <div className='settings-body show'>
               <select value={separator} onChange={e => setSeparator(e.target.value)}>
                 <option value=','>Comma (,)</option>
                 <option value=';'>Semi-colon (;)</option>
                 <option value='|'>Bar (|)</option>
                 <option value='\t'>Tab</option>
               </select>
-            </div>
 
-            <div className='control-group checkbox-group'>
-              <input type='checkbox' id='headerCheck' checked={hasHeaders} onChange={e => setHasHeaders(e.target.checked)} />
-              <label htmlFor='headerCheck'>First row contains headers</label>
-            </div>
+              <label>
+                <input type='checkbox' checked={hasHeaders} onChange={e => setHasHeaders(e.target.checked)} /> First row contains headers
+              </label>
 
-            <div className='control-group action-group'>
-              <button onClick={resetAll} className='btn-link-danger'>
-                Reset All
+              <button className='btn-link-danger' onClick={resetAll}>
+                Reset
               </button>
             </div>
-          </div>
+          )}
         </section>
 
-        {/* Device Identity Panel (The Requirement) */}
         {fileName && (
           <section className='card device-card'>
             <div className='card-header dark-header'>
@@ -200,49 +187,38 @@ function App() {
           </section>
         )}
 
-        {/* Upload Area */}
         {!fileName && (
-          <div className='upload-area' onClick={triggerFileInput}>
-            <input type='file' accept='.csv,.txt' onChange={handleFileChange} className='hidden-input' ref={fileInputRef} />
-            <div className='upload-icon-wrapper'>
-              <IconUpload />
-            </div>
+          <div className='upload-area' onClick={() => fileInputRef.current.click()}>
+            <input ref={fileInputRef} type='file' accept='.csv' hidden onChange={e => processFile(e.target.files[0])} />
+            <IconUpload />
             <h3>Select .csv files</h3>
-            <p>Files are processed locally in your browser.</p>
           </div>
         )}
 
-        {/* Data Table */}
         {fileData.length > 0 && (
           <div className='card table-card'>
-            <div className='card-header'>
-              <h3>File Preview</h3>
-              <span className='row-count'>{fileData.length} Rows</span>
-            </div>
-            <div className='table-wrapper'>
-              <table className='csv-table'>
-                <thead>
-                  <tr>
-                    <th className='index-col'>#</th>
-                    {headers.map((header, index) => (
-                      <th key={index}>{header}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {fileData.map((row, rowIndex) => (
-                    <tr key={rowIndex}>
-                      <td className='index-col'>{rowIndex + 1}</td>
-                      {row.map((cell, cellIndex) => (
-                        <td key={cellIndex}>
-                          <input defaultValue={cell} className='table-input' />
-                        </td>
-                      ))}
-                    </tr>
+            <table className='csv-table'>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  {headers.map((h, i) => (
+                    <th key={i}>{h}</th>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </tr>
+              </thead>
+              <tbody>
+                {fileData.map((row, r) => (
+                  <tr key={r}>
+                    <td className='index-col'>{r + 1}</td>
+                    {row.map((cell, c) => {
+                      const header = headers[c]?.toLowerCase();
+                      const copyable = header === "device serial number" || header === "hardware hash";
+                      return <td key={c}>{copyable ? <CopyCell value={cell} /> : <input defaultValue={cell} className='table-input' />}</td>;
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </main>

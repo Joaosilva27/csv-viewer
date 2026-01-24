@@ -30,6 +30,24 @@ const IconSettings = () => (
   </svg>
 );
 
+const IconTrash = () => (
+  <svg
+    className='icon icon-danger'
+    viewBox='0 0 24 24'
+    fill='none'
+    stroke='currentColor'
+    strokeWidth='2'
+    strokeLinecap='round'
+    strokeLinejoin='round'
+  >
+    <polyline points='3 6 5 6 21 6'></polyline>
+    <path d='M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6'></path>
+    <path d='M10 11v6'></path>
+    <path d='M14 11v6'></path>
+    <path d='M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2'></path>
+  </svg>
+);
+
 // --- Copyable Cell ---
 const CopyCell = ({ value }) => {
   const [copied, setCopied] = useState(false);
@@ -91,6 +109,12 @@ function App() {
     const updated = [...parsed.reverse(), ...rows];
     localStorage.setItem("csvRows", JSON.stringify(updated));
     setRows(updated);
+  };
+
+  const removeRow = index => {
+    const updated = rows.filter((_, i) => i !== index);
+    setRows(updated);
+    localStorage.setItem("csvRows", JSON.stringify(updated));
   };
 
   const resetAll = () => {
@@ -161,20 +185,30 @@ function App() {
                   <th>#</th>
                   <th>Device Serial Number</th>
                   <th>Hardware Hash</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredRows.map((r, i) => (
-                  <tr key={i}>
-                    <td>{i + 1}</td>
-                    <td>
-                      <CopyCell value={r.serial} />
-                    </td>
-                    <td>
-                      <CopyCell value={r.hash} />
-                    </td>
-                  </tr>
-                ))}
+                {filteredRows.map((r, i) => {
+                  const realIndex = rows.findIndex(row => row.serial === r.serial && row.hash === r.hash);
+
+                  return (
+                    <tr key={realIndex}>
+                      <td>{i + 1}</td>
+                      <td>
+                        <CopyCell value={r.serial} />
+                      </td>
+                      <td>
+                        <CopyCell value={r.hash} />
+                      </td>
+                      <td>
+                        <button className='btn-icon btn-danger' onClick={() => removeRow(realIndex)} title='Remove row'>
+                          <IconTrash />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

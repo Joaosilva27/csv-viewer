@@ -453,3 +453,21 @@ select {
   width: 18px;
   height: 18px;
 }
+
+.github-link {
+  margin-top: 8px;
+  color: #666;
+  transition:
+    transform 0.3s ease,
+    color 0.3s ease;
+}
+
+.github-link:hover {
+  color: #000;
+  transform: scale(1.15) rotate(8deg);
+}
+
+.github-icon {
+  width: 26px;
+  height: 26px;
+}

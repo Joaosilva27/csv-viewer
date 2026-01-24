@@ -30,6 +30,12 @@ const IconSettings = () => (
   </svg>
 );
 
+const IconGitHub = () => (
+  <svg className='github-icon' viewBox='0 0 24 24' fill='currentColor'>
+    <path d='M12 .5C5.73.5.5 5.74.5 12.02c0 5.11 3.29 9.45 7.86 10.98.58.11.79-.25.79-.56v-2.02c-3.2.7-3.87-1.55-3.87-1.55-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.75 2.67 1.24 3.32.95.1-.74.4-1.24.72-1.53-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.3 1.18-3.11-.12-.29-.51-1.45.11-3.02 0 0 .97-.31 3.18 1.19a11.05 11.05 0 0 1 5.8 0c2.2-1.5 3.17-1.19 3.17-1.19.63 1.57.24 2.73.12 3.02.73.81 1.17 1.85 1.17 3.11 0 4.42-2.69 5.39-5.25 5.67.41.35.77 1.04.77 2.1v3.12c0 .31.21.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.74 18.27.5 12 .5z' />
+  </svg>
+);
+
 const IconTrash = () => (
   <svg
     className='icon icon-danger'
@@ -217,6 +223,16 @@ function App() {
 
       <footer className='footer'>
         <p>&copy; 2026 CSV Viewer. Open Source.</p>
+
+        <a
+          href='https://github.com/Joaosilva27/csv-viewer'
+          target='_blank'
+          rel='noopener noreferrer'
+          className='github-link'
+          aria-label='GitHub Repository'
+        >
+          <IconGitHub />
+        </a>
       </footer>
     </div>
   );

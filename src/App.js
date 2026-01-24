@@ -52,6 +52,7 @@ const CopyCell = ({ value }) => {
 
 function App() {
   const [rows, setRows] = useState([]);
+  const [search, setSearch] = useState("");
   const [separator, setSeparator] = useState(",");
   const [hasHeaders, setHasHeaders] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -79,8 +80,8 @@ function App() {
       return;
     }
 
-    const parsed = dataLines.map(l => {
-      const cols = l.split(separator);
+    const parsed = dataLines.map(line => {
+      const cols = line.split(separator);
       return {
         serial: cols[serialIndex],
         hash: cols[hashIndex],
@@ -95,7 +96,13 @@ function App() {
   const resetAll = () => {
     localStorage.removeItem("csvRows");
     setRows([]);
+    setSearch("");
   };
+
+  const filteredRows = rows.filter(r => {
+    const q = search.toLowerCase();
+    return r.serial.toLowerCase().includes(q) || r.hash.toLowerCase().includes(q);
+  });
 
   return (
     <div className='app-container'>
@@ -141,6 +148,13 @@ function App() {
 
         {rows.length > 0 && (
           <div className='card table-card'>
+            <input
+              className='search-input'
+              placeholder='Search by serial number or hardware hash...'
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+
             <table className='csv-table'>
               <thead>
                 <tr>
@@ -150,7 +164,7 @@ function App() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r, i) => (
+                {filteredRows.map((r, i) => (
                   <tr key={i}>
                     <td>{i + 1}</td>
                     <td>

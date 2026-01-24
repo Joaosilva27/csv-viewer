@@ -30,12 +30,6 @@ const IconSettings = () => (
   </svg>
 );
 
-const IconGitHub = () => (
-  <svg className='github-icon' viewBox='0 0 24 24' fill='currentColor'>
-    <path d='M12 .5C5.73.5.5 5.74.5 12.02c0 5.11 3.29 9.45 7.86 10.98.58.11.79-.25.79-.56v-2.02c-3.2.7-3.87-1.55-3.87-1.55-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.75 2.67 1.24 3.32.95.1-.74.4-1.24.72-1.53-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.3 1.18-3.11-.12-.29-.51-1.45.11-3.02 0 0 .97-.31 3.18 1.19a11.05 11.05 0 0 1 5.8 0c2.2-1.5 3.17-1.19 3.17-1.19.63 1.57.24 2.73.12 3.02.73.81 1.17 1.85 1.17 3.11 0 4.42-2.69 5.39-5.25 5.67.41.35.77 1.04.77 2.1v3.12c0 .31.21.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.74 18.27.5 12 .5z' />
-  </svg>
-);
-
 const IconTrash = () => (
   <svg
     className='icon icon-danger'
@@ -51,6 +45,12 @@ const IconTrash = () => (
     <path d='M10 11v6'></path>
     <path d='M14 11v6'></path>
     <path d='M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2'></path>
+  </svg>
+);
+
+const IconGitHub = () => (
+  <svg className='github-icon' viewBox='0 0 24 24' fill='currentColor'>
+    <path d='M12 .5C5.73.5.5 5.74.5 12.02c0 5.11 3.29 9.45 7.86 10.98.58.11.79-.25.79-.56v-2.02c-3.2.7-3.87-1.55-3.87-1.55-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.75 2.67 1.24 3.32.95.1-.74.4-1.24.72-1.53-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.3 1.18-3.11-.12-.29-.51-1.45.11-3.02 0 0 .97-.31 3.18 1.19a11.05 11.05 0 0 1 5.8 0c2.2-1.5 3.17-1.19 3.17-1.19.63 1.57.24 2.73.12 3.02.73.81 1.17 1.85 1.17 3.11 0 4.42-2.69 5.39-5.25 5.67.41.35.77 1.04.77 2.1v3.12c0 .31.21.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.74 18.27.5 12 .5z' />
   </svg>
 );
 
@@ -74,13 +74,13 @@ const CopyCell = ({ value }) => {
   );
 };
 
+// --- App Component ---
 function App() {
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState("");
   const [separator, setSeparator] = useState(",");
   const [hasHeaders, setHasHeaders] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
-
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -91,30 +91,30 @@ function App() {
   const processFile = async file => {
     const text = await file.text();
     const lines = text.split(/\r?\n/).filter(Boolean);
+    if (!lines.length) return;
 
-    const headerLine = hasHeaders ? lines[0] : "";
+    const headers = hasHeaders ? lines[0].split(separator) : [];
     const dataLines = hasHeaders ? lines.slice(1) : lines;
 
-    const headers = hasHeaders ? headerLine.split(separator) : [];
     const serialIndex = headers.findIndex(h => h.toLowerCase().includes("serial"));
     const hashIndex = headers.findIndex(h => h.toLowerCase().includes("hash"));
 
-    if (serialIndex === -1 || hashIndex === -1) {
-      alert("CSV must contain Device Serial Number and Hardware Hash");
+    if (hasHeaders && (serialIndex === -1 || hashIndex === -1)) {
+      alert("CSV must contain Device Serial Number and Hardware Hash headers");
       return;
     }
 
     const parsed = dataLines.map(line => {
       const cols = line.split(separator);
       return {
-        serial: cols[serialIndex],
-        hash: cols[hashIndex],
+        serial: hasHeaders ? cols[serialIndex] : cols[0],
+        hash: hasHeaders ? cols[hashIndex] : cols[1],
       };
     });
 
     const updated = [...parsed.reverse(), ...rows];
-    localStorage.setItem("csvRows", JSON.stringify(updated));
     setRows(updated);
+    localStorage.setItem("csvRows", JSON.stringify(updated));
   };
 
   const removeRow = index => {
@@ -129,16 +129,13 @@ function App() {
     setSearch("");
   };
 
-  const filteredRows = rows.filter(r => {
-    const q = search.toLowerCase();
-    return r.serial.toLowerCase().includes(q) || r.hash.toLowerCase().includes(q);
-  });
+  const filteredRows = rows.filter(r => r.serial.toLowerCase().includes(search.toLowerCase()) || r.hash.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className='app-container'>
       <nav className='navbar'>
         <div className='nav-brand'>
-          <img src='https://www.conectys.com/wp-content/uploads/2024/08/conectys-logo.svg' alt='Conectys Logo' style={{ width: "130px" }} />
+          <img src='https://www.conectys.com/wp-content/uploads/2024/08/conectys-logo.svg' alt='Conectys Logo' style={{ width: 130 }} />
           <span className='brand-text'>CSV Viewer</span>
         </div>
       </nav>
@@ -155,7 +152,7 @@ function App() {
               <select value={separator} onChange={e => setSeparator(e.target.value)}>
                 <option value=','>Comma (,)</option>
                 <option value=';'>Semicolon (;)</option>
-                <option value='|'>Bar (|)</option>
+                <option value='|'>Pipe (|)</option>
                 <option value='\t'>Tab</option>
               </select>
 
@@ -185,21 +182,19 @@ function App() {
               onChange={e => setSearch(e.target.value)}
             />
 
-            <table className='csv-table'>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Device Serial Number</th>
-                  <th>Hardware Hash</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRows.map((r, i) => {
-                  const realIndex = rows.findIndex(row => row.serial === r.serial && row.hash === r.hash);
-
-                  return (
-                    <tr key={realIndex}>
+            <div className='table-wrapper'>
+              <table className='csv-table'>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Device Serial Number</th>
+                    <th>Hardware Hash</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredRows.map((r, i) => (
+                    <tr key={i}>
                       <td>{i + 1}</td>
                       <td>
                         <CopyCell value={r.serial} />
@@ -208,22 +203,21 @@ function App() {
                         <CopyCell value={r.hash} />
                       </td>
                       <td>
-                        <button className='btn-icon btn-danger' onClick={() => removeRow(realIndex)} title='Remove row'>
+                        <button className='btn-icon btn-danger' onClick={() => removeRow(i)}>
                           <IconTrash />
                         </button>
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </main>
 
       <footer className='footer'>
         <p>&copy; 2026 CSV Viewer. Open Source.</p>
-
         <a
           href='https://github.com/Joaosilva27/csv-viewer'
           target='_blank'

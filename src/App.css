@@ -64,16 +64,6 @@ body {
   font-size: 1.25rem;
 }
 
-.logo-box {
-  width: 20px;
-  height: 20px;
-  color: white;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .nav-links a {
   margin-left: 1.5rem;
   text-decoration: none;
@@ -87,7 +77,7 @@ body {
   color: var(--primary);
 }
 
-/* --- Cards (Generic) --- */
+/* --- Cards --- */
 .card {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
@@ -152,7 +142,7 @@ body {
 
 .settings-body.show {
   padding: 1.5rem;
-  max-height: 500px; /* Arbitrary large number for transition */
+  max-height: 500px;
 }
 
 .control-group label {
@@ -199,7 +189,7 @@ select {
   padding: 0;
 }
 
-/* --- Device ID Panel (Dark Theme) --- */
+/* --- Device Panel Dark Theme --- */
 .device-card {
   background: linear-gradient(135deg, var(--dark-bg), var(--dark-accent));
   color: white;
@@ -236,7 +226,7 @@ select {
   }
 }
 
-/* Copy Input Sub-Component */
+/* --- Copy Input Component --- */
 .copy-input-container {
   display: flex;
   flex-direction: column;
@@ -258,16 +248,27 @@ select {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  max-width: 100%;
 }
 
 .code-display {
-  flex: 1;
-  font-family: "Courier New", monospace;
-  font-size: 0.9rem;
-  color: var(--dark-bg);
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
   white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
+  padding: 2px 4px;
+  background-color: #f7f7f7;
+  border-radius: 4px;
+}
+
+.code-display::-webkit-scrollbar {
+  height: 6px;
+}
+
+.code-display::-webkit-scrollbar-thumb {
+  background: #aaa;
+  border-radius: 3px;
 }
 
 .btn-icon {
@@ -365,6 +366,12 @@ select {
 .csv-table td {
   padding: 0.5rem 1.5rem;
   border-bottom: 1px solid var(--border-color);
+  max-width: 0;
+}
+
+.csv-table td:nth-child(2),
+.csv-table td:nth-child(3) {
+  width: 40%;
 }
 
 .csv-table tr:hover {
@@ -402,7 +409,6 @@ select {
   font-size: 0.85rem;
 }
 
-/* Search bar */
 .search-input {
   width: 100%;
   margin-bottom: 16px;
@@ -418,18 +424,16 @@ select {
     box-shadow 0.2s ease;
 }
 
-/* Focus state */
 .search-input:focus {
-  border-color: #2563eb; /* subtle blue */
+  border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
-/* Placeholder */
 .search-input::placeholder {
   color: #667085;
 }
 
-/* Dark mode support (if you already use it elsewhere) */
+/* --- Dark mode support --- */
 .dark .search-input {
   background-color: #1f2937;
   color: #f9fafb;

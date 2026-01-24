@@ -154,6 +154,13 @@ body {
   border-radius: 6px;
   border: 1px solid #d1d5db;
   background-color: #ffffff;
+  color: #1f2937;
+}
+
+.app-container.dark .settings-card select {
+  background-color: #1e293b;
+  color: #f1f5f9;
+  border-color: #334155;
 }
 
 .settings-card label {

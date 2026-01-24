@@ -264,15 +264,14 @@ select {
   padding: 2px 4px;
   background-color: #f7f7f7;
   border-radius: 4px;
+
+  /* Hide scrollbar */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .code-display::-webkit-scrollbar {
-  height: 6px;
-}
-
-.code-display::-webkit-scrollbar-thumb {
-  background: #aaa;
-  border-radius: 3px;
+  display: none;
 }
 
 .btn-icon {

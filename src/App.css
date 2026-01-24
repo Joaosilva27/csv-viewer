@@ -373,9 +373,12 @@ select {
   max-width: 0;
 }
 
-.csv-table td:nth-child(2),
+.csv-table td:nth-child(2) {
+  width: 25%;
+}
+
 .csv-table td:nth-child(3) {
-  width: 40%;
+  width: 75%;
 }
 
 .csv-table tr:hover {

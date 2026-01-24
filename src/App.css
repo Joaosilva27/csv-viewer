@@ -254,9 +254,13 @@ select {
 .code-display {
   flex: 1 1 auto;
   min-width: 0;
+
   overflow-x: auto;
+  overflow-y: hidden;
+
   white-space: nowrap;
-  text-overflow: ellipsis;
+  text-overflow: unset; /* or remove line entirely */
+
   padding: 2px 4px;
   background-color: #f7f7f7;
   border-radius: 4px;

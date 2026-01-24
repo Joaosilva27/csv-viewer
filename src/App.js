@@ -1,7 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "./App.css";
 
-// --- Icons (Standard SVG Components) ---
+// --- Icons ---
 const IconCopy = () => (
   <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
     <rect x='9' y='9' width='13' height='13' rx='2' ry='2'></rect>
@@ -10,21 +10,13 @@ const IconCopy = () => (
 );
 
 const IconCheck = () => (
-  <svg
-    className='icon icon-success'
-    viewBox='0 0 24 24'
-    fill='none'
-    stroke='currentColor'
-    strokeWidth='3'
-    strokeLinecap='round'
-    strokeLinejoin='round'
-  >
+  <svg className='icon icon-success' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='3'>
     <polyline points='20 6 9 17 4 12'></polyline>
   </svg>
 );
 
 const IconUpload = () => (
-  <svg className='icon icon-large' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1' strokeLinecap='round' strokeLinejoin='round'>
+  <svg className='icon icon-large' viewBox='0 0 24 24' fill='none' stroke='currentColor'>
     <path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'></path>
     <polyline points='17 8 12 3 7 8'></polyline>
     <line x1='12' y1='3' x2='12' y2='15'></line>
@@ -32,36 +24,13 @@ const IconUpload = () => (
 );
 
 const IconSettings = () => (
-  <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+  <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
     <circle cx='12' cy='12' r='3'></circle>
     <path d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z'></path>
   </svg>
 );
 
-// --- Sub-Component: Copy Field ---
-const CopyInput = ({ label, value }) => {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(value);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <div className='copy-input-container'>
-      <label className='input-label'>{label}</label>
-      <div className='input-wrapper'>
-        <code className='code-display'>{value || "Waiting for file..."}</code>
-        <button onClick={handleCopy} disabled={!value} className='btn-icon'>
-          {copied ? <IconCheck /> : <IconCopy />}
-        </button>
-      </div>
-    </div>
-  );
-};
-
-// --- Sub-Component: Copyable Table Cell ---
+// --- Copyable Cell ---
 const CopyCell = ({ value }) => {
   const [copied, setCopied] = useState(false);
 
@@ -81,78 +50,59 @@ const CopyCell = ({ value }) => {
   );
 };
 
-// --- Main App Component ---
 function App() {
-  const [fileData, setFileData] = useState([]);
-  const [headers, setHeaders] = useState([]);
-  const [fileName, setFileName] = useState("");
-
-  const [deviceId, setDeviceId] = useState("");
-  const [deviceHash, setDeviceHash] = useState("");
-
+  const [rows, setRows] = useState([]);
   const [separator, setSeparator] = useState(",");
   const [hasHeaders, setHasHeaders] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const fileInputRef = useRef(null);
 
-  const calculateHash = async text => {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(text);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-    return Array.from(new Uint8Array(hashBuffer))
-      .map(b => b.toString(16).padStart(2, "0"))
-      .join("");
-  };
-
-  const generateDeviceId = () => "dev_" + crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem("csvRows") || "[]");
+    setRows(saved);
+  }, []);
 
   const processFile = async file => {
-    if (!file) return;
-
-    setFileName(file.name);
-
     const text = await file.text();
-    setDeviceHash(await calculateHash(text));
-    setDeviceId(generateDeviceId());
+    const lines = text.split(/\r?\n/).filter(Boolean);
 
-    const rows = text
-      .split(/\r?\n/)
-      .filter(r => r.trim() !== "")
-      .map(r => r.split(separator));
+    const headerLine = hasHeaders ? lines[0] : "";
+    const dataLines = hasHeaders ? lines.slice(1) : lines;
 
-    if (hasHeaders) {
-      setHeaders(rows[0]);
-      setFileData(rows.slice(1));
-    } else {
-      setHeaders(rows[0].map((_, i) => `Column ${i + 1}`));
-      setFileData(rows);
+    const headers = hasHeaders ? headerLine.split(separator) : [];
+    const serialIndex = headers.findIndex(h => h.toLowerCase().includes("serial"));
+    const hashIndex = headers.findIndex(h => h.toLowerCase().includes("hash"));
+
+    if (serialIndex === -1 || hashIndex === -1) {
+      alert("CSV must contain Device Serial Number and Hardware Hash");
+      return;
     }
+
+    const parsed = dataLines.map(l => {
+      const cols = l.split(separator);
+      return {
+        serial: cols[serialIndex],
+        hash: cols[hashIndex],
+      };
+    });
+
+    const updated = [...parsed.reverse(), ...rows];
+    localStorage.setItem("csvRows", JSON.stringify(updated));
+    setRows(updated);
   };
 
   const resetAll = () => {
-    setFileData([]);
-    setHeaders([]);
-    setFileName("");
-    setDeviceId("");
-    setDeviceHash("");
+    localStorage.removeItem("csvRows");
+    setRows([]);
   };
 
   return (
     <div className='app-container'>
       <nav className='navbar'>
         <div className='nav-brand'>
-          <img
-            src='https://www.conectys.com/wp-content/uploads/2024/08/conectys-logo.svg'
-            alt='Conectys Logo'
-            className='logo-box'
-            style={{
-              width: "100px", // bigger
-              height: "auto", // preserve aspect ratio
-              display: "block", // remove background/inline weird spacing
-            }}
-          />
-          <span className='brand-text'>CVS Viewer</span>
+          <img src='https://www.conectys.com/wp-content/uploads/2024/08/conectys-logo.svg' alt='Conectys Logo' style={{ width: "130px" }} />
+          <span className='brand-text'>CSV Viewer</span>
         </div>
       </nav>
 
@@ -167,7 +117,7 @@ function App() {
             <div className='settings-body show'>
               <select value={separator} onChange={e => setSeparator(e.target.value)}>
                 <option value=','>Comma (,)</option>
-                <option value=';'>Semi-colon (;)</option>
+                <option value=';'>Semicolon (;)</option>
                 <option value='|'>Bar (|)</option>
                 <option value='\t'>Tab</option>
               </select>
@@ -183,47 +133,32 @@ function App() {
           )}
         </section>
 
-        {fileName && (
-          <section className='card device-card'>
-            <div className='card-header dark-header'>
-              <h3>Device Identity Generated</h3>
-              <span className='file-badge'>{fileName}</span>
-            </div>
-            <div className='device-grid'>
-              <CopyInput label='Device ID' value={deviceId} />
-              <CopyInput label='Device Hash (SHA-256)' value={deviceHash} />
-            </div>
-          </section>
-        )}
+        <div className='upload-area' onClick={() => fileInputRef.current.click()}>
+          <input ref={fileInputRef} type='file' accept='.csv' hidden onChange={e => processFile(e.target.files[0])} />
+          <IconUpload />
+          <h3>Select CSV file</h3>
+        </div>
 
-        {!fileName && (
-          <div className='upload-area' onClick={() => fileInputRef.current.click()}>
-            <input ref={fileInputRef} type='file' accept='.csv' hidden onChange={e => processFile(e.target.files[0])} />
-            <IconUpload />
-            <h3>Select .csv files</h3>
-          </div>
-        )}
-
-        {fileData.length > 0 && (
+        {rows.length > 0 && (
           <div className='card table-card'>
             <table className='csv-table'>
               <thead>
                 <tr>
                   <th>#</th>
-                  {headers.map((h, i) => (
-                    <th key={i}>{h}</th>
-                  ))}
+                  <th>Device Serial Number</th>
+                  <th>Hardware Hash</th>
                 </tr>
               </thead>
               <tbody>
-                {fileData.map((row, r) => (
-                  <tr key={r}>
-                    <td className='index-col'>{r + 1}</td>
-                    {row.map((cell, c) => {
-                      const header = headers[c]?.toLowerCase();
-                      const copyable = header === "device serial number" || header === "hardware hash";
-                      return <td key={c}>{copyable ? <CopyCell value={cell} /> : <input defaultValue={cell} className='table-input' />}</td>;
-                    })}
+                {rows.map((r, i) => (
+                  <tr key={i}>
+                    <td>{i + 1}</td>
+                    <td>
+                      <CopyCell value={r.serial} />
+                    </td>
+                    <td>
+                      <CopyCell value={r.hash} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -233,7 +168,7 @@ function App() {
       </main>
 
       <footer className='footer'>
-        <p>&copy; 2026 CVS Viewer. Open Source.</p>
+        <p>&copy; 2026 CSV Viewer. Open Source.</p>
       </footer>
     </div>
   );

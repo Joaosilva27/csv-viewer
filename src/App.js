@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./App.css";
 
-// --- Icons ---
+/* ===================== ICONS ===================== */
+
 const IconCopy = () => (
   <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
     <rect x='9' y='9' width='13' height='13' rx='2' ry='2'></rect>
@@ -61,7 +62,26 @@ const IconSearch = () => (
   </svg>
 );
 
-// --- Copyable Cell ---
+const IconMoon = () => (
+  <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
+    <path d='M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z' />
+  </svg>
+);
+
+const IconSun = () => (
+  <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
+    <circle cx='12' cy='12' r='5' />
+    <line x1='12' y1='1' x2='12' y2='3' />
+    <line x1='12' y1='21' x2='12' y2='23' />
+    <line x1='4.22' y1='4.22' x2='5.64' y2='5.64' />
+    <line x1='18.36' y1='18.36' x2='19.78' y2='19.78' />
+    <line x1='1' y1='12' x2='3' y2='12' />
+    <line x1='21' y1='12' x2='23' y2='12' />
+  </svg>
+);
+
+/* ===================== COPY CELL ===================== */
+
 const CopyCell = ({ value }) => {
   const [copied, setCopied] = useState(false);
 
@@ -81,19 +101,26 @@ const CopyCell = ({ value }) => {
   );
 };
 
-// --- App Component ---
+/* ===================== APP ===================== */
+
 function App() {
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState("");
   const [separator, setSeparator] = useState(",");
   const [hasHeaders, setHasHeaders] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem("theme") === "dark");
+
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem("csvRows") || "[]");
     setRows(saved);
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("theme", darkMode ? "dark" : "light");
+  }, [darkMode]);
 
   const processFile = async file => {
     const text = await file.text();
@@ -138,18 +165,17 @@ function App() {
 
   const filteredRows = rows.filter(r => r.serial.toLowerCase().includes(search.toLowerCase()) || r.hash.toLowerCase().includes(search.toLowerCase()));
 
-  const handleSearch = () => {
-    // Search is already being performed on every character change
-    // This function is triggered on icon click for explicit search action
-  };
-
   return (
-    <div className='app-container'>
+    <div className={`app-container ${darkMode ? "dark" : ""}`}>
       <nav className='navbar'>
         <div className='nav-brand'>
           <img src='https://www.conectys.com/wp-content/uploads/2024/08/conectys-logo.svg' alt='Conectys Logo' style={{ width: 130 }} />
           <span className='brand-text'>CSV Viewer</span>
         </div>
+
+        <button className='btn-icon' onClick={() => setDarkMode(!darkMode)} aria-label='Toggle theme'>
+          {darkMode ? <IconSun /> : <IconMoon />}
+        </button>
       </nav>
 
       <main className='main-content'>
@@ -194,7 +220,7 @@ function App() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
-              <button className='btn-search' onClick={handleSearch} aria-label='Search'>
+              <button className='btn-search' aria-label='Search'>
                 <IconSearch />
               </button>
             </div>

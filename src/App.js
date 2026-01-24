@@ -54,6 +54,13 @@ const IconGitHub = () => (
   </svg>
 );
 
+const IconSearch = () => (
+  <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+    <circle cx='11' cy='11' r='8'></circle>
+    <path d='m21 21-4.35-4.35'></path>
+  </svg>
+);
+
 // --- Copyable Cell ---
 const CopyCell = ({ value }) => {
   const [copied, setCopied] = useState(false);
@@ -131,6 +138,11 @@ function App() {
 
   const filteredRows = rows.filter(r => r.serial.toLowerCase().includes(search.toLowerCase()) || r.hash.toLowerCase().includes(search.toLowerCase()));
 
+  const handleSearch = () => {
+    // Search is already being performed on every character change
+    // This function is triggered on icon click for explicit search action
+  };
+
   return (
     <div className='app-container'>
       <nav className='navbar'>
@@ -175,12 +187,17 @@ function App() {
 
         {rows.length > 0 && (
           <div className='card table-card'>
-            <input
-              className='search-input'
-              placeholder='Search by serial number or hardware hash...'
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
+            <div className='search-bar'>
+              <input
+                className='search-input'
+                placeholder='Search by serial number or hardware hash...'
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+              <button className='btn-search' onClick={handleSearch} aria-label='Search'>
+                <IconSearch />
+              </button>
+            </div>
 
             <div className='table-wrapper'>
               <table className='csv-table'>

@@ -401,3 +401,41 @@ select {
   color: var(--text-muted);
   font-size: 0.85rem;
 }
+
+/* Search bar */
+.search-input {
+  width: 100%;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #d0d5dd;
+  outline: none;
+  background-color: #ffffff;
+  color: #101828;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* Focus state */
+.search-input:focus {
+  border-color: #2563eb; /* subtle blue */
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Placeholder */
+.search-input::placeholder {
+  color: #667085;
+}
+
+/* Dark mode support (if you already use it elsewhere) */
+.dark .search-input {
+  background-color: #1f2937;
+  color: #f9fafb;
+  border-color: #374151;
+}
+
+.dark .search-input::placeholder {
+  color: #9ca3af;
+}

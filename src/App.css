@@ -306,6 +306,13 @@ body {
   font-size: 0.75rem;
   background-color: #f3f4f6;
   border-radius: 6px;
+  /* Hide scrollbar */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.code-display::-webkit-scrollbar {
+  display: none;
 }
 
 .btn-icon {

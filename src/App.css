@@ -225,12 +225,13 @@ body {
 /* ===================== TABLE ===================== */
 
 .table-wrapper {
-  overflow-x: auto;
+  overflow-x: visible;
 }
 
 .csv-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .csv-table th,
@@ -238,6 +239,27 @@ body {
   padding: 12px;
   text-align: left;
   font-size: 0.85rem;
+  overflow: hidden;
+}
+
+.csv-table th:nth-child(1),
+.csv-table td:nth-child(1) {
+  width: 50px;
+}
+
+.csv-table th:nth-child(2),
+.csv-table td:nth-child(2) {
+  width: 25%;
+}
+
+.csv-table th:nth-child(3),
+.csv-table td:nth-child(3) {
+  width: 75%;
+}
+
+.csv-table th:nth-child(4),
+.csv-table td:nth-child(4) {
+  width: 60px;
 }
 
 .csv-table th {

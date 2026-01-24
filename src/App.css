@@ -353,7 +353,30 @@ body {
 }
 
 .github-link {
-  color: inherit;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    color 0.3s ease;
+}
+
+.github-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.github-link:hover {
+  color: #1f2937;
+  transform: scale(1.15) rotate(12deg);
+}
+
+.app-container.dark .github-link {
+  color: #94a3b8;
+}
+
+.app-container.dark .github-link:hover {
+  color: #f1f5f9;
 }
 
 /* ===================== SCROLLBAR ===================== */

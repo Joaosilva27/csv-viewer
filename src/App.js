@@ -170,7 +170,6 @@ function App() {
       <nav className='navbar'>
         <div className='nav-brand'>
           <img src='https://www.conectys.com/wp-content/uploads/2024/08/conectys-logo.svg' alt='Conectys Logo' style={{ width: 130 }} />
-          <span className='brand-text'>CSV Viewer</span>
         </div>
 
         <button className='btn-icon' onClick={() => setDarkMode(!darkMode)} aria-label='Toggle theme'>

@@ -314,6 +314,34 @@ body {
   cursor: pointer;
 }
 
+.btn-download {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #6366f1;
+  background-color: #6366f1;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-download:hover {
+  background-color: #4f46e5;
+}
+
+.app-container.dark .btn-download {
+  border-color: #6366f1;
+  background-color: #6366f1;
+}
+
+.app-container.dark .btn-download:hover {
+  background-color: #4f46e5;
+}
+
 /* ===================== TABLE ===================== */
 
 .table-wrapper {

@@ -96,6 +96,14 @@ const IconEdit = () => (
   </svg>
 );
 
+const IconDownload = () => (
+  <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+    <path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'></path>
+    <polyline points='7 10 12 15 17 10'></polyline>
+    <line x1='12' y1='15' x2='12' y2='3'></line>
+  </svg>
+);
+
 /* ===================== EDITABLE COPY CELL ===================== */
 
 const EditableCopyCell = ({ value, onEdit }) => {
@@ -289,6 +297,38 @@ function App() {
     localStorage.setItem(`csvRows_${mode}`, JSON.stringify(updated));
   };
 
+  const downloadCSV = () => {
+    let csvContent = "";
+
+    if (mode === "viking") {
+      // Add headers
+      csvContent += "Device Serial Number,Hardware Hash\n";
+      // Add rows
+      rows.forEach(row => {
+        csvContent += `${row.serial},${row.hash}\n`;
+      });
+    } else {
+      // Add headers
+      csvContent += headers.join(",") + "\n";
+      // Add rows
+      rows.forEach(row => {
+        const rowValues = headers.map(header => row[header] || "");
+        csvContent += rowValues.join(",") + "\n";
+      });
+    }
+
+    // Create download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${mode}_export_${Date.now()}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const filteredRows =
     mode === "viking"
       ? rows.filter(r => r.serial?.toLowerCase().includes(search.toLowerCase()) || r.hash?.toLowerCase().includes(search.toLowerCase()))
@@ -363,6 +403,10 @@ function App() {
                   <input className='search-input' placeholder='Search...' value={search} onChange={e => setSearch(e.target.value)} />
                   <button className='btn-search' aria-label='Search'>
                     <IconSearch />
+                  </button>
+                  <button className='btn-download' onClick={downloadCSV} title='Download CSV'>
+                    <IconDownload />
+                    <span>Download CSV</span>
                   </button>
                 </div>
 

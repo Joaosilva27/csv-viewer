@@ -239,7 +239,7 @@ function App() {
   return (
     <div className={`app-container ${darkMode ? "dark" : ""}`}>
       <nav className='navbar'>
-        <div className='nav-brand clickable' onClick={resetAll} style={{ cursor: "pointer" }}>
+        <div className='nav-brand clickable' onClick={() => setMode(null)} style={{ cursor: "pointer" }}>
           <img src={ConectysLogo} alt='Conectys Logo' className='brand-logo' />
           <span className='brand-text'>CSV Viewer</span>
         </div>

@@ -73,6 +73,16 @@ body {
   border-top: 1px solid #1e293b;
 }
 
+.app-container.dark .mode-card {
+  background-color: #020617;
+  border-color: #1e293b;
+}
+
+.app-container.dark .mode-card:hover {
+  border-color: #6366f1;
+  background-color: #1e293b;
+}
+
 /* ===================== LAYOUT ===================== */
 
 .app-container {
@@ -108,6 +118,71 @@ body {
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+}
+
+/* ===================== MODE SELECTION ===================== */
+
+.mode-selection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 24px;
+}
+
+.mode-selection h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.mode-buttons {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.mode-card {
+  background-color: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 32px;
+  width: 280px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mode-card:hover {
+  border-color: #6366f1;
+  background-color: #eef2ff;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+}
+
+.mode-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  color: #6366f1;
+}
+
+.mode-card h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.mode-card p {
+  font-size: 0.9rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.app-container.dark .mode-card p {
+  color: #9ca3af;
 }
 
 /* ===================== CARDS ===================== */
@@ -237,13 +312,13 @@ body {
 /* ===================== TABLE ===================== */
 
 .table-wrapper {
-  overflow-x: visible;
+  overflow-x: auto;
 }
 
 .csv-table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto;
 }
 
 .csv-table th,
@@ -254,23 +329,13 @@ body {
   overflow: hidden;
 }
 
-.csv-table th:nth-child(1),
-.csv-table td:nth-child(1) {
+.csv-table th:first-child,
+.csv-table td:first-child {
   width: 50px;
 }
 
-.csv-table th:nth-child(2),
-.csv-table td:nth-child(2) {
-  width: 25%;
-}
-
-.csv-table th:nth-child(3),
-.csv-table td:nth-child(3) {
-  width: 75%;
-}
-
-.csv-table th:nth-child(4),
-.csv-table td:nth-child(4) {
+.csv-table th:last-child,
+.csv-table td:last-child {
   width: 60px;
 }
 
@@ -278,6 +343,7 @@ body {
   background-color: #f9fafb;
   font-weight: 600;
   border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
 }
 
 .csv-table tr {

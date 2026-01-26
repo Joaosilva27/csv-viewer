@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./App.css";
-import conectys from "./conectys.png";
 
 /* ===================== ICONS ===================== */
 
@@ -81,6 +80,19 @@ const IconSun = () => (
   </svg>
 );
 
+const IconCloud = () => (
+  <svg className='mode-icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
+    <path d='M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z'></path>
+  </svg>
+);
+
+const IconFile = () => (
+  <svg className='mode-icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
+    <path d='M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z'></path>
+    <polyline points='13 2 13 9 20 9'></polyline>
+  </svg>
+);
+
 /* ===================== COPY CELL ===================== */
 
 const CopyCell = ({ value }) => {
@@ -105,7 +117,9 @@ const CopyCell = ({ value }) => {
 /* ===================== APP ===================== */
 
 function App() {
+  const [mode, setMode] = useState(null); // 'viking' or 'other'
   const [rows, setRows] = useState([]);
+  const [headers, setHeaders] = useState([]);
   const [search, setSearch] = useState("");
   const [separator, setSeparator] = useState(",");
   const [hasHeaders, setHasHeaders] = useState(true);
@@ -115,15 +129,27 @@ function App() {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("csvRows") || "[]");
-    setRows(saved);
+    const savedMode = localStorage.getItem("csvMode");
+    const savedRows = JSON.parse(localStorage.getItem("csvRows") || "[]");
+    const savedHeaders = JSON.parse(localStorage.getItem("csvHeaders") || "[]");
+
+    if (savedMode) {
+      setMode(savedMode);
+      setRows(savedRows);
+      setHeaders(savedHeaders);
+    }
   }, []);
 
   useEffect(() => {
     localStorage.setItem("theme", darkMode ? "dark" : "light");
   }, [darkMode]);
 
-  const processFile = async file => {
+  const selectMode = selectedMode => {
+    setMode(selectedMode);
+    localStorage.setItem("csvMode", selectedMode);
+  };
+
+  const processVikingFile = async file => {
     const text = await file.text();
     const lines = text.split(/\r?\n/).filter(Boolean);
     if (!lines.length) return;
@@ -152,6 +178,42 @@ function App() {
     localStorage.setItem("csvRows", JSON.stringify(updated));
   };
 
+  const processOtherFile = async file => {
+    const text = await file.text();
+    const lines = text.split(/\r?\n/).filter(Boolean);
+    if (!lines.length) return;
+
+    const fileHeaders = hasHeaders ? lines[0].split(separator) : [];
+    const dataLines = hasHeaders ? lines.slice(1) : lines;
+
+    // If no headers, generate generic column names
+    const columnHeaders =
+      fileHeaders.length > 0 ? fileHeaders : Array.from({ length: dataLines[0].split(separator).length }, (_, i) => `Column ${i + 1}`);
+
+    const parsed = dataLines.map(line => {
+      const cols = line.split(separator);
+      const rowData = {};
+      columnHeaders.forEach((header, index) => {
+        rowData[header] = cols[index] || "";
+      });
+      return rowData;
+    });
+
+    const updated = [...parsed.reverse(), ...rows];
+    setRows(updated);
+    setHeaders(columnHeaders);
+    localStorage.setItem("csvRows", JSON.stringify(updated));
+    localStorage.setItem("csvHeaders", JSON.stringify(columnHeaders));
+  };
+
+  const processFile = async file => {
+    if (mode === "viking") {
+      await processVikingFile(file);
+    } else if (mode === "other") {
+      await processOtherFile(file);
+    }
+  };
+
   const removeRow = index => {
     const updated = rows.filter((_, i) => i !== index);
     setRows(updated);
@@ -160,17 +222,24 @@ function App() {
 
   const resetAll = () => {
     localStorage.removeItem("csvRows");
+    localStorage.removeItem("csvHeaders");
+    localStorage.removeItem("csvMode");
     setRows([]);
+    setHeaders([]);
     setSearch("");
+    setMode(null);
   };
 
-  const filteredRows = rows.filter(r => r.serial.toLowerCase().includes(search.toLowerCase()) || r.hash.toLowerCase().includes(search.toLowerCase()));
+  const filteredRows =
+    mode === "viking"
+      ? rows.filter(r => r.serial?.toLowerCase().includes(search.toLowerCase()) || r.hash?.toLowerCase().includes(search.toLowerCase()))
+      : rows.filter(r => Object.values(r).some(val => String(val).toLowerCase().includes(search.toLowerCase())));
 
   return (
     <div className={`app-container ${darkMode ? "dark" : ""}`}>
       <nav className='navbar'>
         <div className='nav-brand'>
-          <img src={conectys} alt='Conectys Logo' style={{ width: 130 }} />
+          <span className='brand-text'>Conectys CSV Viewer</span>
         </div>
 
         <button className='btn-icon' onClick={() => setDarkMode(!darkMode)} aria-label='Toggle theme'>
@@ -179,83 +248,117 @@ function App() {
       </nav>
 
       <main className='main-content'>
-        <section className='card settings-card'>
-          <div className='card-header clickable' onClick={() => setShowAdvanced(!showAdvanced)}>
-            <IconSettings />
-            <h2>CSV Settings</h2>
-          </div>
-
-          {showAdvanced && (
-            <div className='settings-body show'>
-              <select value={separator} onChange={e => setSeparator(e.target.value)}>
-                <option value=','>Comma (,)</option>
-                <option value=';'>Semicolon (;)</option>
-                <option value='|'>Pipe (|)</option>
-                <option value='\t'>Tab</option>
-              </select>
-
-              <label>
-                <input type='checkbox' checked={hasHeaders} onChange={e => setHasHeaders(e.target.checked)} /> First row contains headers
-              </label>
-
-              <button className='btn-link-danger' onClick={resetAll}>
-                Reset
-              </button>
-            </div>
-          )}
-        </section>
-
-        <div className='upload-area' onClick={() => fileInputRef.current.click()}>
-          <input ref={fileInputRef} type='file' accept='.csv' hidden onChange={e => processFile(e.target.files[0])} />
-          <IconUpload />
-          <h3>Select CSV file</h3>
-        </div>
-
-        {rows.length > 0 && (
-          <div className='card table-card'>
-            <div className='search-bar'>
-              <input
-                className='search-input'
-                placeholder='Search by serial number or hardware hash...'
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-              />
-              <button className='btn-search' aria-label='Search'>
-                <IconSearch />
-              </button>
-            </div>
-
-            <div className='table-wrapper'>
-              <table className='csv-table'>
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Device Serial Number</th>
-                    <th>Hardware Hash</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredRows.map((r, i) => (
-                    <tr key={i}>
-                      <td>{i + 1}</td>
-                      <td>
-                        <CopyCell value={r.serial} />
-                      </td>
-                      <td>
-                        <CopyCell value={r.hash} />
-                      </td>
-                      <td>
-                        <button className='btn-icon btn-danger' onClick={() => removeRow(i)}>
-                          <IconTrash />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {!mode ? (
+          <div className='mode-selection'>
+            <h2>Select CSV Mode</h2>
+            <div className='mode-buttons'>
+              <div className='mode-card' onClick={() => selectMode("viking")}>
+                <IconCloud />
+                <h3>Viking Cloud</h3>
+                <p>Import CSV files with Device Serial Number and Hardware Hash columns</p>
+              </div>
+              <div className='mode-card' onClick={() => selectMode("other")}>
+                <IconFile />
+                <h3>Other</h3>
+                <p>Import any CSV file with custom columns and data</p>
+              </div>
             </div>
           </div>
+        ) : (
+          <>
+            <section className='card settings-card'>
+              <div className='card-header clickable' onClick={() => setShowAdvanced(!showAdvanced)}>
+                <IconSettings />
+                <h2>CSV Settings</h2>
+              </div>
+
+              {showAdvanced && (
+                <div className='settings-body show'>
+                  <select value={separator} onChange={e => setSeparator(e.target.value)}>
+                    <option value=','>Comma (,)</option>
+                    <option value=';'>Semicolon (;)</option>
+                    <option value='|'>Pipe (|)</option>
+                    <option value='\t'>Tab</option>
+                  </select>
+
+                  <label>
+                    <input type='checkbox' checked={hasHeaders} onChange={e => setHasHeaders(e.target.checked)} /> First row contains headers
+                  </label>
+
+                  <button className='btn-link-danger' onClick={resetAll}>
+                    Reset & Change Mode
+                  </button>
+                </div>
+              )}
+            </section>
+
+            <div className='upload-area' onClick={() => fileInputRef.current.click()}>
+              <input ref={fileInputRef} type='file' accept='.csv' hidden onChange={e => processFile(e.target.files[0])} />
+              <IconUpload />
+              <h3>Select CSV file</h3>
+              <p style={{ marginTop: "8px", fontSize: "0.9rem", color: "#6b7280" }}>
+                {mode === "viking" ? "Viking Cloud Mode - Requires Serial & Hash columns" : "Other Mode - Any CSV format accepted"}
+              </p>
+            </div>
+
+            {rows.length > 0 && (
+              <div className='card table-card'>
+                <div className='search-bar'>
+                  <input className='search-input' placeholder='Search...' value={search} onChange={e => setSearch(e.target.value)} />
+                  <button className='btn-search' aria-label='Search'>
+                    <IconSearch />
+                  </button>
+                </div>
+
+                <div className='table-wrapper'>
+                  <table className='csv-table'>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        {mode === "viking" ? (
+                          <>
+                            <th>Device Serial Number</th>
+                            <th>Hardware Hash</th>
+                          </>
+                        ) : (
+                          headers.map((header, i) => <th key={i}>{header}</th>)
+                        )}
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredRows.map((r, i) => (
+                        <tr key={i}>
+                          <td>{i + 1}</td>
+                          {mode === "viking" ? (
+                            <>
+                              <td>
+                                <CopyCell value={r.serial} />
+                              </td>
+                              <td>
+                                <CopyCell value={r.hash} />
+                              </td>
+                            </>
+                          ) : (
+                            headers.map((header, j) => (
+                              <td key={j}>
+                                <CopyCell value={r[header]} />
+                              </td>
+                            ))
+                          )}
+                          <td>
+                            <button className='btn-icon btn-danger' onClick={() => removeRow(i)}>
+                              <IconTrash />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </main>
 

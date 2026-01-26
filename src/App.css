@@ -83,6 +83,12 @@ body {
   background-color: #1e293b;
 }
 
+.app-container.dark .edit-input {
+  background-color: #1e293b;
+  color: #e5e7eb;
+  border-color: #6366f1;
+}
+
 /* ===================== LAYOUT ===================== */
 
 .app-container {
@@ -385,6 +391,18 @@ body {
 
 .code-display::-webkit-scrollbar {
   display: none;
+}
+
+.edit-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 6px 8px;
+  font-family: monospace;
+  font-size: 0.75rem;
+  background-color: #f3f4f6;
+  border: 2px solid #6366f1;
+  border-radius: 6px;
+  outline: none;
 }
 
 .btn-icon {

@@ -115,14 +115,17 @@ const EditableCopyCell = ({ value, onEdit }) => {
     }
   }, [isEditing]);
 
-  const copy = () => {
+  const copy = e => {
+    e.stopPropagation();
     navigator.clipboard.writeText(value);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
 
-  const handleEdit = () => {
-    setIsEditing(true);
+  const handleClick = () => {
+    if (!isEditing) {
+      setIsEditing(true);
+    }
   };
 
   const handleSave = () => {
@@ -156,11 +159,10 @@ const EditableCopyCell = ({ value, onEdit }) => {
           onBlur={handleBlur}
         />
       ) : (
-        <code className='code-display'>{value}</code>
+        <code className='code-display' onClick={handleClick} style={{ cursor: "text" }}>
+          {value}
+        </code>
       )}
-      <button className='btn-icon' onClick={handleEdit} title='Edit'>
-        <IconEdit />
-      </button>
       <button className='btn-icon' onClick={copy} title='Copy'>
         {copied ? <IconCheck /> : <IconCopy />}
       </button>

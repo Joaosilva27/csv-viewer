@@ -129,13 +129,13 @@ function App() {
 
   const fileInputRef = useRef(null);
 
+  // Load saved mode data
   useEffect(() => {
     const savedMode = localStorage.getItem("csvMode");
-    const savedRows = JSON.parse(localStorage.getItem("csvRows") || "[]");
-    const savedHeaders = JSON.parse(localStorage.getItem("csvHeaders") || "[]");
-
     if (savedMode) {
       setMode(savedMode);
+      const savedRows = JSON.parse(localStorage.getItem(`csvRows_${savedMode}`) || "[]");
+      const savedHeaders = JSON.parse(localStorage.getItem(`csvHeaders_${savedMode}`) || "[]");
       setRows(savedRows);
       setHeaders(savedHeaders);
     }
@@ -148,6 +148,11 @@ function App() {
   const selectMode = selectedMode => {
     setMode(selectedMode);
     localStorage.setItem("csvMode", selectedMode);
+    // Load data for this mode if exists
+    const savedRows = JSON.parse(localStorage.getItem(`csvRows_${selectedMode}`) || "[]");
+    const savedHeaders = JSON.parse(localStorage.getItem(`csvHeaders_${selectedMode}`) || "[]");
+    setRows(savedRows);
+    setHeaders(savedHeaders);
   };
 
   const processVikingFile = async file => {
@@ -176,7 +181,7 @@ function App() {
 
     const updated = [...parsed.reverse(), ...rows];
     setRows(updated);
-    localStorage.setItem("csvRows", JSON.stringify(updated));
+    localStorage.setItem(`csvRows_viking`, JSON.stringify(updated));
   };
 
   const processOtherFile = async file => {
@@ -187,7 +192,6 @@ function App() {
     const fileHeaders = hasHeaders ? lines[0].split(separator) : [];
     const dataLines = hasHeaders ? lines.slice(1) : lines;
 
-    // If no headers, generate generic column names
     const columnHeaders =
       fileHeaders.length > 0 ? fileHeaders : Array.from({ length: dataLines[0].split(separator).length }, (_, i) => `Column ${i + 1}`);
 
@@ -203,8 +207,8 @@ function App() {
     const updated = [...parsed.reverse(), ...rows];
     setRows(updated);
     setHeaders(columnHeaders);
-    localStorage.setItem("csvRows", JSON.stringify(updated));
-    localStorage.setItem("csvHeaders", JSON.stringify(columnHeaders));
+    localStorage.setItem(`csvRows_other`, JSON.stringify(updated));
+    localStorage.setItem(`csvHeaders_other`, JSON.stringify(columnHeaders));
   };
 
   const processFile = async file => {
@@ -218,17 +222,7 @@ function App() {
   const removeRow = index => {
     const updated = rows.filter((_, i) => i !== index);
     setRows(updated);
-    localStorage.setItem("csvRows", JSON.stringify(updated));
-  };
-
-  const resetAll = () => {
-    localStorage.removeItem("csvRows");
-    localStorage.removeItem("csvHeaders");
-    localStorage.removeItem("csvMode");
-    setRows([]);
-    setHeaders([]);
-    setSearch("");
-    setMode(null);
+    localStorage.setItem(`csvRows_${mode}`, JSON.stringify(updated));
   };
 
   const filteredRows =
@@ -286,10 +280,6 @@ function App() {
                   <label>
                     <input type='checkbox' checked={hasHeaders} onChange={e => setHasHeaders(e.target.checked)} /> First row contains headers
                   </label>
-
-                  <button className='btn-link-danger' onClick={resetAll}>
-                    Reset & Change Mode
-                  </button>
                 </div>
               )}
             </section>

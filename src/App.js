@@ -388,7 +388,8 @@ function App() {
                   <button
                     className='btn-link-danger'
                     onClick={() => {
-                      if (window.confirm("Are you sure you want to delete all data? This cannot be undone.")) {
+                      const modeName = mode === "viking" ? "Viking Cloud" : "Other";
+                      if (window.confirm(`Are you sure you want to delete all ${modeName} data? This cannot be undone.`)) {
                         setRows([]);
                         setHeaders([]);
                         localStorage.removeItem(`csvRows_${mode}`);
@@ -396,7 +397,7 @@ function App() {
                       }
                     }}
                   >
-                    Reset All Data
+                    Reset {mode === "viking" ? "Viking Cloud" : "Other"} Data
                   </button>
                 </div>
               )}

@@ -384,6 +384,20 @@ function App() {
                   <label>
                     <input type='checkbox' checked={hasHeaders} onChange={e => setHasHeaders(e.target.checked)} /> First row contains headers
                   </label>
+
+                  <button
+                    className='btn-link-danger'
+                    onClick={() => {
+                      if (window.confirm("Are you sure you want to delete all data? This cannot be undone.")) {
+                        setRows([]);
+                        setHeaders([]);
+                        localStorage.removeItem(`csvRows_${mode}`);
+                        localStorage.removeItem(`csvHeaders_${mode}`);
+                      }
+                    }}
+                  >
+                    Reset All Data
+                  </button>
                 </div>
               )}
             </section>
@@ -404,9 +418,9 @@ function App() {
                   <button className='btn-search' aria-label='Search'>
                     <IconSearch />
                   </button>
-                  <button className='btn-download' onClick={downloadCSV} title='Download CSV'>
+                  <button className='btn-download' onClick={downloadCSV} title='Export CSV'>
                     <IconDownload />
-                    <span>Download CSV</span>
+                    <span>Export</span>
                   </button>
                 </div>
 

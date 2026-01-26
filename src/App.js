@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./App.css";
 import ConectysLogo from "./conectys.png";
+import VikingLogo from "./viking.png";
 
 /* ===================== ICONS ===================== */
 
@@ -249,8 +250,8 @@ function App() {
             <h2>Select CSV Mode</h2>
             <div className='mode-buttons'>
               <div className='mode-card' onClick={() => selectMode("viking")}>
-                <IconCloud />
-                <h3>Viking Cloud</h3>
+                <img src={VikingLogo} alt='Viking Logo' className='mode-icon' />
+                <h3>Viking</h3>
                 <p>Import CSV files with Device Serial Number and Hardware Hash columns</p>
               </div>
               <div className='mode-card' onClick={() => selectMode("other")}>

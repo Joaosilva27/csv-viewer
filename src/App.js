@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./App.css";
+import conectys from './conectys.png';
 
 /* ===================== ICONS ===================== */
 
@@ -169,7 +170,7 @@ function App() {
     <div className={`app-container ${darkMode ? "dark" : ""}`}>
       <nav className='navbar'>
         <div className='nav-brand'>
-          <img src='https://www.conectys.com/wp-content/uploads/2024/08/conectys-logo.svg' alt='Conectys Logo' style={{ width: 130 }} />
+          <img src={conectys}ys alt='Conectys Logo' style={{ width: 130 }} />
         </div>
 
         <button className='btn-icon' onClick={() => setDarkMode(!darkMode)} aria-label='Toggle theme'>

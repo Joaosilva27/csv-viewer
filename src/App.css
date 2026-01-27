@@ -534,6 +534,17 @@ body {
   max-width: 100%;
 }
 
+.input-wrapper.duplicate .code-display {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+}
+
+.app-container.dark .input-wrapper.duplicate .code-display {
+  background-color: #78350f;
+  border: 1px solid #f59e0b;
+  color: #fef3c7;
+}
+
 .code-display {
   flex: 1 1 auto;
   min-width: 0;

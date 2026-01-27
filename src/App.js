@@ -132,7 +132,7 @@ const IconPlus = () => (
 
 /* ===================== EDITABLE COPY CELL ===================== */
 
-const EditableCopyCell = ({ value, onEdit }) => {
+const EditableCopyCell = ({ value, onEdit, isDuplicate }) => {
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value);
@@ -181,7 +181,7 @@ const EditableCopyCell = ({ value, onEdit }) => {
   };
 
   return (
-    <div className='input-wrapper'>
+    <div className={`input-wrapper ${isDuplicate ? "duplicate" : ""}`}>
       {isEditing ? (
         <input
           ref={inputRef}
@@ -218,6 +218,7 @@ function App() {
   const [sortColumn, setSortColumn] = useState(null);
   const [sortDirection, setSortDirection] = useState("asc");
   const [selectedRows, setSelectedRows] = useState(new Set());
+  const [highlightDuplicates, setHighlightDuplicates] = useState(() => localStorage.getItem("highlightDuplicates") === "true");
 
   const fileInputRef = useRef(null);
 
@@ -235,6 +236,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem("theme", darkMode ? "dark" : "light");
   }, [darkMode]);
+
+  useEffect(() => {
+    localStorage.setItem("highlightDuplicates", highlightDuplicates);
+  }, [highlightDuplicates]);
 
   const selectMode = selectedMode => {
     setMode(selectedMode);
@@ -416,6 +421,67 @@ function App() {
     }
   };
 
+  // Find duplicates
+  const getDuplicates = () => {
+    if (!highlightDuplicates) return new Set();
+
+    const duplicates = new Set();
+    const valueCounts = new Map();
+
+    if (mode === "viking") {
+      // Check both serial and hash
+      rows.forEach(row => {
+        const serial = String(row.serial || "").trim();
+        const hash = String(row.hash || "").trim();
+
+        if (serial) {
+          valueCounts.set(`serial:${serial}`, (valueCounts.get(`serial:${serial}`) || 0) + 1);
+        }
+        if (hash) {
+          valueCounts.set(`hash:${hash}`, (valueCounts.get(`hash:${hash}`) || 0) + 1);
+        }
+      });
+
+      rows.forEach(row => {
+        const serial = String(row.serial || "").trim();
+        const hash = String(row.hash || "").trim();
+
+        if (serial && valueCounts.get(`serial:${serial}`) > 1) {
+          duplicates.add(`${JSON.stringify(row)}:serial`);
+        }
+        if (hash && valueCounts.get(`hash:${hash}`) > 1) {
+          duplicates.add(`${JSON.stringify(row)}:hash`);
+        }
+      });
+    } else {
+      // Check all columns
+      headers.forEach(header => {
+        const values = new Map();
+        rows.forEach(row => {
+          const val = String(row[header] || "").trim();
+          if (val) {
+            values.set(val, (values.get(val) || 0) + 1);
+          }
+        });
+
+        rows.forEach(row => {
+          const val = String(row[header] || "").trim();
+          if (val && values.get(val) > 1) {
+            duplicates.add(`${JSON.stringify(row)}:${header}`);
+          }
+        });
+      });
+    }
+
+    return duplicates;
+  };
+
+  const duplicates = getDuplicates();
+
+  const isDuplicate = (row, field) => {
+    return duplicates.has(`${JSON.stringify(row)}:${field}`);
+  };
+
   let filteredRows =
     mode === "viking"
       ? rows.filter(r => r.serial?.toLowerCase().includes(search.toLowerCase()) || r.hash?.toLowerCase().includes(search.toLowerCase()))
@@ -483,6 +549,11 @@ function App() {
 
                   <label>
                     <input type='checkbox' checked={hasHeaders} onChange={e => setHasHeaders(e.target.checked)} /> First row contains headers
+                  </label>
+
+                  <label>
+                    <input type='checkbox' checked={highlightDuplicates} onChange={e => setHighlightDuplicates(e.target.checked)} /> Highlight
+                    duplicate values
                   </label>
 
                   <button
@@ -595,16 +666,28 @@ function App() {
                           {mode === "viking" ? (
                             <>
                               <td>
-                                <EditableCopyCell value={r.serial} onEdit={newValue => updateCell(r, "serial", newValue)} />
+                                <EditableCopyCell
+                                  value={r.serial}
+                                  onEdit={newValue => updateCell(r, "serial", newValue)}
+                                  isDuplicate={isDuplicate(r, "serial")}
+                                />
                               </td>
                               <td>
-                                <EditableCopyCell value={r.hash} onEdit={newValue => updateCell(r, "hash", newValue)} />
+                                <EditableCopyCell
+                                  value={r.hash}
+                                  onEdit={newValue => updateCell(r, "hash", newValue)}
+                                  isDuplicate={isDuplicate(r, "hash")}
+                                />
                               </td>
                             </>
                           ) : (
                             headers.map((header, j) => (
                               <td key={j}>
-                                <EditableCopyCell value={r[header]} onEdit={newValue => updateCell(r, header, newValue)} />
+                                <EditableCopyCell
+                                  value={r[header]}
+                                  onEdit={newValue => updateCell(r, header, newValue)}
+                                  isDuplicate={isDuplicate(r, header)}
+                                />
                               </td>
                             ))
                           )}

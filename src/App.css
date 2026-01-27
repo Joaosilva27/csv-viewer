@@ -372,6 +372,49 @@ body {
   width: 60px;
 }
 
+/* Excel-style compact mode for "other" tables */
+.csv-table.compact th,
+.csv-table.compact td {
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.csv-table.compact th:first-child,
+.csv-table.compact td:first-child {
+  width: 40px;
+  padding: 4px 6px;
+}
+
+.csv-table.compact th:last-child,
+.csv-table.compact td:last-child {
+  width: 50px;
+  padding: 4px 6px;
+}
+
+.csv-table.compact .input-wrapper {
+  gap: 4px;
+}
+
+.csv-table.compact .code-display {
+  padding: 3px 6px;
+  font-size: 0.7rem;
+}
+
+.csv-table.compact .edit-input {
+  padding: 3px 6px;
+  font-size: 0.7rem;
+}
+
+.csv-table.compact .btn-icon {
+  padding: 2px;
+}
+
+.csv-table.compact .icon {
+  width: 14px;
+  height: 14px;
+}
+
 .csv-table th {
   background-color: #f9fafb;
   font-weight: 600;

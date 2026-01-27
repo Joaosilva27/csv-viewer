@@ -426,7 +426,7 @@ function App() {
                 </div>
 
                 <div className='table-wrapper'>
-                  <table className='csv-table'>
+                  <table className={`csv-table ${mode === "other" ? "compact" : ""}`}>
                     <thead>
                       <tr>
                         <th>#</th>

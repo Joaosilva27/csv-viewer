@@ -314,6 +314,10 @@ function App() {
     } else if (mode === "other") {
       await processOtherFile(file);
     }
+    // Clear the file input so the same file can be uploaded again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const removeRow = rowToRemove => {

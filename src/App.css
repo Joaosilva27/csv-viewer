@@ -292,10 +292,27 @@ body {
 
 /* ===================== SEARCH ===================== */
 
-.search-bar {
+.action-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.search-section {
   display: flex;
   gap: 8px;
-  margin-bottom: 12px;
+  flex: 1;
+  min-width: 200px;
+  max-width: 400px;
+}
+
+.button-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .search-input {
@@ -312,6 +329,58 @@ body {
   background-color: #ffffff;
   padding: 0 12px;
   cursor: pointer;
+}
+
+.btn-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #1f2937;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-action:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.btn-danger-action {
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+.btn-danger-action:hover {
+  background-color: #dc2626;
+  color: #ffffff;
+}
+
+.app-container.dark .btn-action {
+  background-color: #1e293b;
+  border-color: #334155;
+  color: #e5e7eb;
+}
+
+.app-container.dark .btn-action:hover {
+  background-color: #334155;
+}
+
+.stats-bar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.app-container.dark .stats-bar {
+  color: #9ca3af;
 }
 
 .btn-download {
@@ -422,6 +491,20 @@ body {
   white-space: nowrap;
 }
 
+.csv-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.csv-table th.sortable:hover {
+  background-color: #f3f4f6;
+}
+
+.app-container.dark .csv-table th.sortable:hover {
+  background-color: #1e293b;
+}
+
 .csv-table tr {
   border-bottom: 1px solid #e5e7eb;
 }
@@ -430,8 +513,16 @@ body {
   background-color: #f9fafb;
 }
 
+.csv-table tr.selected {
+  background-color: #eef2ff;
+}
+
 .app-container.dark .csv-table tr:hover {
   background-color: #1e293b;
+}
+
+.app-container.dark .csv-table tr.selected {
+  background-color: #312e81;
 }
 
 /* ===================== COPY CELL ===================== */

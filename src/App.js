@@ -89,18 +89,44 @@ const IconFile = () => (
   </svg>
 );
 
-const IconEdit = () => (
-  <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
-    <path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'></path>
-    <path d='M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z'></path>
-  </svg>
-);
-
 const IconDownload = () => (
   <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
     <path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'></path>
     <polyline points='7 10 12 15 17 10'></polyline>
     <line x1='12' y1='15' x2='12' y2='3'></line>
+  </svg>
+);
+
+const IconSort = () => (
+  <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
+    <path d='M11 5h10'></path>
+    <path d='M11 9h7'></path>
+    <path d='M11 13h4'></path>
+    <path d='M3 17l3 3 3-3'></path>
+    <path d='M6 18V4'></path>
+  </svg>
+);
+
+const IconFilter = () => (
+  <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
+    <polygon points='22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3'></polygon>
+  </svg>
+);
+
+const IconCopyAll = () => (
+  <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
+    <rect x='9' y='9' width='13' height='13' rx='2' ry='2'></rect>
+    <path d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'></path>
+    <line x1='12' y1='12' x2='18' y2='12'></line>
+    <line x1='12' y1='16' x2='18' y2='16'></line>
+    <line x1='12' y1='20' x2='18' y2='20'></line>
+  </svg>
+);
+
+const IconPlus = () => (
+  <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
+    <line x1='12' y1='5' x2='12' y2='19'></line>
+    <line x1='5' y1='12' x2='19' y2='12'></line>
   </svg>
 );
 
@@ -189,6 +215,9 @@ function App() {
   const [hasHeaders, setHasHeaders] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("theme") === "dark");
+  const [sortColumn, setSortColumn] = useState(null);
+  const [sortDirection, setSortDirection] = useState("asc");
+  const [selectedRows, setSelectedRows] = useState(new Set());
 
   const fileInputRef = useRef(null);
 
@@ -214,6 +243,8 @@ function App() {
     const savedHeaders = JSON.parse(localStorage.getItem(`csvHeaders_${selectedMode}`) || "[]");
     setRows(savedRows);
     setHeaders(savedHeaders);
+    setSelectedRows(new Set());
+    setSortColumn(null);
   };
 
   const processVikingFile = async file => {
@@ -284,6 +315,17 @@ function App() {
     const updated = rows.filter(r => r !== rowToRemove);
     setRows(updated);
     localStorage.setItem(`csvRows_${mode}`, JSON.stringify(updated));
+    setSelectedRows(new Set());
+  };
+
+  const removeSelectedRows = () => {
+    if (selectedRows.size === 0) return;
+    if (!window.confirm(`Delete ${selectedRows.size} selected rows?`)) return;
+
+    const updated = rows.filter(r => !selectedRows.has(r));
+    setRows(updated);
+    localStorage.setItem(`csvRows_${mode}`, JSON.stringify(updated));
+    setSelectedRows(new Set());
   };
 
   const updateCell = (rowToUpdate, field, newValue) => {
@@ -297,27 +339,36 @@ function App() {
     localStorage.setItem(`csvRows_${mode}`, JSON.stringify(updated));
   };
 
+  const addNewRow = () => {
+    const newRow = mode === "viking" ? { serial: "", hash: "" } : headers.reduce((acc, header) => ({ ...acc, [header]: "" }), {});
+
+    const updated = [newRow, ...rows];
+    setRows(updated);
+    localStorage.setItem(`csvRows_${mode}`, JSON.stringify(updated));
+  };
+
+  const handleSort = column => {
+    const newDirection = sortColumn === column && sortDirection === "asc" ? "desc" : "asc";
+    setSortColumn(column);
+    setSortDirection(newDirection);
+  };
+
   const downloadCSV = () => {
     let csvContent = "";
 
     if (mode === "viking") {
-      // Add headers
       csvContent += "Device Serial Number,Hardware Hash\n";
-      // Add rows
       rows.forEach(row => {
         csvContent += `${row.serial},${row.hash}\n`;
       });
     } else {
-      // Add headers
       csvContent += headers.join(",") + "\n";
-      // Add rows
       rows.forEach(row => {
         const rowValues = headers.map(header => row[header] || "");
         csvContent += rowValues.join(",") + "\n";
       });
     }
 
-    // Create download
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
@@ -329,10 +380,59 @@ function App() {
     document.body.removeChild(link);
   };
 
-  const filteredRows =
+  const copyAllToClipboard = () => {
+    let content = "";
+    if (mode === "viking") {
+      content = "Device Serial Number\tHardware Hash\n";
+      filteredAndSortedRows.forEach(row => {
+        content += `${row.serial}\t${row.hash}\n`;
+      });
+    } else {
+      content = headers.join("\t") + "\n";
+      filteredAndSortedRows.forEach(row => {
+        const rowValues = headers.map(header => row[header] || "");
+        content += rowValues.join("\t") + "\n";
+      });
+    }
+    navigator.clipboard.writeText(content);
+    alert("All data copied to clipboard!");
+  };
+
+  const toggleRowSelection = row => {
+    const newSelected = new Set(selectedRows);
+    if (newSelected.has(row)) {
+      newSelected.delete(row);
+    } else {
+      newSelected.add(row);
+    }
+    setSelectedRows(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedRows.size === filteredAndSortedRows.length) {
+      setSelectedRows(new Set());
+    } else {
+      setSelectedRows(new Set(filteredAndSortedRows));
+    }
+  };
+
+  let filteredRows =
     mode === "viking"
       ? rows.filter(r => r.serial?.toLowerCase().includes(search.toLowerCase()) || r.hash?.toLowerCase().includes(search.toLowerCase()))
       : rows.filter(r => Object.values(r).some(val => String(val).toLowerCase().includes(search.toLowerCase())));
+
+  // Apply sorting
+  let filteredAndSortedRows = [...filteredRows];
+  if (sortColumn) {
+    filteredAndSortedRows.sort((a, b) => {
+      const aVal = String(a[sortColumn] || "").toLowerCase();
+      const bVal = String(b[sortColumn] || "").toLowerCase();
+
+      if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+  }
 
   return (
     <div className={`app-container ${darkMode ? "dark" : ""}`}>
@@ -394,6 +494,7 @@ function App() {
                         setHeaders([]);
                         localStorage.removeItem(`csvRows_${mode}`);
                         localStorage.removeItem(`csvHeaders_${mode}`);
+                        setSelectedRows(new Set());
                       }
                     }}
                   >
@@ -414,36 +515,82 @@ function App() {
 
             {rows.length > 0 && (
               <div className='card table-card'>
-                <div className='search-bar'>
-                  <input className='search-input' placeholder='Search...' value={search} onChange={e => setSearch(e.target.value)} />
-                  <button className='btn-search' aria-label='Search'>
-                    <IconSearch />
-                  </button>
-                  <button className='btn-download' onClick={downloadCSV} title='Export CSV'>
-                    <IconDownload />
-                    <span>Export</span>
-                  </button>
+                <div className='action-bar'>
+                  <div className='search-section'>
+                    <input className='search-input' placeholder='Search...' value={search} onChange={e => setSearch(e.target.value)} />
+                    <button className='btn-search' aria-label='Search'>
+                      <IconSearch />
+                    </button>
+                  </div>
+
+                  <div className='button-group'>
+                    <button className='btn-action' onClick={addNewRow} title='Add new row'>
+                      <IconPlus />
+                      <span>Add Row</span>
+                    </button>
+
+                    {selectedRows.size > 0 && (
+                      <button className='btn-action btn-danger-action' onClick={removeSelectedRows}>
+                        <IconTrash />
+                        <span>Delete ({selectedRows.size})</span>
+                      </button>
+                    )}
+
+                    <button className='btn-action' onClick={copyAllToClipboard} title='Copy all to clipboard'>
+                      <IconCopyAll />
+                      <span>Copy All</span>
+                    </button>
+
+                    <button className='btn-download' onClick={downloadCSV} title='Export CSV'>
+                      <IconDownload />
+                      <span>Export</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className='stats-bar'>
+                  <span>Total: {rows.length} rows</span>
+                  {search && <span>Filtered: {filteredAndSortedRows.length} rows</span>}
+                  {selectedRows.size > 0 && <span>Selected: {selectedRows.size} rows</span>}
                 </div>
 
                 <div className='table-wrapper'>
                   <table className={`csv-table ${mode === "other" ? "compact" : ""}`}>
                     <thead>
                       <tr>
+                        <th>
+                          <input
+                            type='checkbox'
+                            checked={filteredAndSortedRows.length > 0 && selectedRows.size === filteredAndSortedRows.length}
+                            onChange={toggleSelectAll}
+                          />
+                        </th>
                         <th>#</th>
                         {mode === "viking" ? (
                           <>
-                            <th>Device Serial Number</th>
-                            <th>Hardware Hash</th>
+                            <th className='sortable' onClick={() => handleSort("serial")}>
+                              Device Serial Number {sortColumn === "serial" && (sortDirection === "asc" ? "↑" : "↓")}
+                            </th>
+                            <th className='sortable' onClick={() => handleSort("hash")}>
+                              Hardware Hash {sortColumn === "hash" && (sortDirection === "asc" ? "↑" : "↓")}
+                            </th>
                           </>
                         ) : (
-                          headers.map((header, i) => <th key={i}>{header}</th>)
+                          headers.map((header, i) => (
+                            <th key={i} className='sortable' onClick={() => handleSort(header)}>
+                              {header} {sortColumn === header && (sortDirection === "asc" ? "↑" : "↓")}
+                            </th>
+                          ))
                         )}
                         <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredRows.map((r, i) => (
-                        <tr key={i}>
+                      {filteredAndSortedRows.map((r, i) => (
+                        <tr key={i} className={selectedRows.has(r) ? "selected" : ""}>
+                          <td>
+                            <input type='checkbox' checked={selectedRows.has(r)} onChange={() => toggleRowSelection(r)} />
+                          </td>
                           <td>{i + 1}</td>
                           {mode === "viking" ? (
                             <>

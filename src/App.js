@@ -292,20 +292,26 @@ function App() {
     const columnHeaders =
       fileHeaders.length > 0 ? fileHeaders : Array.from({ length: dataLines[0].split(separator).length }, (_, i) => `Column ${i + 1}`);
 
+    // Merge new headers with existing headers (union of both)
+    const existingHeaders = headers.length > 0 ? headers : columnHeaders;
+    const allHeaders = [...new Set([...existingHeaders, ...columnHeaders])];
+
     const parsed = dataLines.map(line => {
       const cols = line.split(separator);
       const rowData = {};
-      columnHeaders.forEach((header, index) => {
-        rowData[header] = cols[index] || "";
+      allHeaders.forEach((header, index) => {
+        // Only set values for columns that exist in this file
+        const colIndex = columnHeaders.indexOf(header);
+        rowData[header] = colIndex !== -1 ? cols[colIndex] || "" : "";
       });
       return rowData;
     });
 
     const updated = [...parsed.reverse(), ...rows];
     setRows(updated);
-    setHeaders(columnHeaders);
+    setHeaders(allHeaders);
     localStorage.setItem(`csvRows_other`, JSON.stringify(updated));
-    localStorage.setItem(`csvHeaders_other`, JSON.stringify(columnHeaders));
+    localStorage.setItem(`csvHeaders_other`, JSON.stringify(allHeaders));
   };
 
   const processFile = async file => {

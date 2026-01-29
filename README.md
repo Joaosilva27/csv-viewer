@@ -8,10 +8,10 @@ Includes persistent storage, fast search, inline editing, CSV export, and light/
 
 ## Light Theme UI Preview
 
-<img width="1440" height="708" alt="Screenshot 2026-01-26 at 21 51 38" src="https://github.com/user-attachments/assets/c7956389-0e13-41cb-8b9f-f1e75bc9c7e6" />
+<img width="1440" height="707" alt="Screenshot 2026-01-27 at 21 49 16" src="https://github.com/user-attachments/assets/ef659616-5da8-4c91-952c-907a7d52715d" />
 
 
 
 ## Dark Theme UI Preview
 
-<img width="1440" height="709" alt="Screenshot 2026-01-26 at 21 51 28" src="https://github.com/user-attachments/assets/90ff7949-4d53-4b15-a87f-7d1fdc2f680d" />
+<img width="1440" height="707" alt="Screenshot 2026-01-27 at 21 48 56" src="https://github.com/user-attachments/assets/57eb619d-ba52-4caa-bd47-a329ba9be1d7" />

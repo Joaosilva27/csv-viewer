@@ -97,22 +97,6 @@ const IconDownload = () => (
   </svg>
 );
 
-const IconSort = () => (
-  <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
-    <path d='M11 5h10'></path>
-    <path d='M11 9h7'></path>
-    <path d='M11 13h4'></path>
-    <path d='M3 17l3 3 3-3'></path>
-    <path d='M6 18V4'></path>
-  </svg>
-);
-
-const IconFilter = () => (
-  <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
-    <polygon points='22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3'></polygon>
-  </svg>
-);
-
 const IconCopyAll = () => (
   <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
     <rect x='9' y='9' width='13' height='13' rx='2' ry='2'></rect>
@@ -127,6 +111,24 @@ const IconPlus = () => (
   <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
     <line x1='12' y1='5' x2='12' y2='19'></line>
     <line x1='5' y1='12' x2='19' y2='12'></line>
+  </svg>
+);
+
+const IconExpand = () => (
+  <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
+    <polyline points='15 3 21 3 21 9'></polyline>
+    <polyline points='9 21 3 21 3 15'></polyline>
+    <line x1='21' y1='3' x2='14' y2='10'></line>
+    <line x1='3' y1='21' x2='10' y2='14'></line>
+  </svg>
+);
+
+const IconCollapse = () => (
+  <svg className='icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
+    <polyline points='4 14 10 14 10 20'></polyline>
+    <polyline points='20 10 14 10 14 4'></polyline>
+    <line x1='14' y1='10' x2='21' y2='3'></line>
+    <line x1='3' y1='21' x2='10' y2='14'></line>
   </svg>
 );
 
@@ -219,6 +221,7 @@ function App() {
   const [sortDirection, setSortDirection] = useState("asc");
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [highlightDuplicates, setHighlightDuplicates] = useState(() => localStorage.getItem("highlightDuplicates") === "true");
+  const [expandedView, setExpandedView] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -292,7 +295,6 @@ function App() {
     const columnHeaders =
       fileHeaders.length > 0 ? fileHeaders : Array.from({ length: dataLines[0].split(separator).length }, (_, i) => `Column ${i + 1}`);
 
-    // Merge new headers with existing headers (union of both)
     const existingHeaders = headers.length > 0 ? headers : columnHeaders;
     const allHeaders = [...new Set([...existingHeaders, ...columnHeaders])];
 
@@ -300,7 +302,6 @@ function App() {
       const cols = line.split(separator);
       const rowData = {};
       allHeaders.forEach((header, index) => {
-        // Only set values for columns that exist in this file
         const colIndex = columnHeaders.indexOf(header);
         rowData[header] = colIndex !== -1 ? cols[colIndex] || "" : "";
       });
@@ -320,7 +321,6 @@ function App() {
     } else if (mode === "other") {
       await processOtherFile(file);
     }
-    // Clear the file input so the same file can be uploaded again
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -431,7 +431,6 @@ function App() {
     }
   };
 
-  // Find duplicates
   const getDuplicates = () => {
     if (!highlightDuplicates) return new Set();
 
@@ -439,7 +438,6 @@ function App() {
     const valueCounts = new Map();
 
     if (mode === "viking") {
-      // Check both serial and hash
       rows.forEach(row => {
         const serial = String(row.serial || "").trim();
         const hash = String(row.hash || "").trim();
@@ -464,7 +462,6 @@ function App() {
         }
       });
     } else {
-      // Check all columns
       headers.forEach(header => {
         const values = new Map();
         rows.forEach(row => {
@@ -497,7 +494,6 @@ function App() {
       ? rows.filter(r => r.serial?.toLowerCase().includes(search.toLowerCase()) || r.hash?.toLowerCase().includes(search.toLowerCase()))
       : rows.filter(r => Object.values(r).some(val => String(val).toLowerCase().includes(search.toLowerCase())));
 
-  // Apply sorting
   let filteredAndSortedRows = [...filteredRows];
   if (sortColumn) {
     filteredAndSortedRows.sort((a, b) => {
@@ -523,7 +519,7 @@ function App() {
         </button>
       </nav>
 
-      <main className='main-content'>
+      <main className={`main-content ${expandedView ? "expanded" : ""}`}>
         {!mode ? (
           <div className='mode-selection'>
             <h2>Select CSV Mode</h2>
@@ -605,6 +601,15 @@ function App() {
                   </div>
 
                   <div className='button-group'>
+                    <button
+                      className='btn-action'
+                      onClick={() => setExpandedView(!expandedView)}
+                      title={expandedView ? "Exit full width" : "Expand to full width"}
+                    >
+                      {expandedView ? <IconCollapse /> : <IconExpand />}
+                      <span>{expandedView ? "Collapse" : "Expand"}</span>
+                    </button>
+
                     <button className='btn-action' onClick={addNewRow} title='Add new row'>
                       <IconPlus />
                       <span>Add Row</span>

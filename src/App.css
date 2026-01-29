@@ -124,6 +124,24 @@ body {
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-content.expanded {
+  max-width: 100%;
+  padding: 24px 12px;
+  animation: expandWidth 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes expandWidth {
+  0% {
+    max-width: 1400px;
+    padding: 24px;
+  }
+  100% {
+    max-width: 100%;
+    padding: 24px 12px;
+  }
 }
 
 /* ===================== MODE SELECTION ===================== */
